@@ -25,6 +25,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--dlibFacePredictor', type=str, help="Path to dlib's face predictor.",
                     default=os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
+parser.add_argument('--imgDim', type=int,
+                    help="Default image dimension.", default=96)
 
 args = parser.parse_args()
 align = openface.AlignDlib(args.dlibFacePredictor)
@@ -127,6 +129,10 @@ class S(BaseHTTPRequestHandler):
         if alignedFace is None:
             raise Exception("Unable to align image: {}".format(imgPath))
         print("  + Face alignment took {} seconds.".format(time.time() - start))
+
+        # TODO: Extract features from alignedFace
+        # TODO: Apply sklearn model
+
         ############
 
         result = {
