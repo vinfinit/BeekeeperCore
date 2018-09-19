@@ -1,4 +1,5 @@
 import os
+import time
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import mimetypes as memetypes
 import shutil
@@ -6,10 +7,13 @@ import cgi
 import random
 import string
 import json
+
 import openface
+from openface import AlignDlib as align
 import cv2
 
 BASE62_CHARSET=string.ascii_lowercase + string.digits + string.ascii_uppercase
+TMP_DIR='tmp/'
 
 def rand_string(n=8, charset=BASE62_CHARSET):
     res = ""
@@ -81,9 +85,9 @@ class S(BaseHTTPRequestHandler):
 
         _, ext = os.path.splitext(form["file"].filename)
 
-        fname = rand_string() + ext
+        fname = TMP_DIR + rand_string() + ext
         while os.path.isfile(fname):
-            fname = rand_string() + ext
+            fname = TMP_DIR + rand_string() + ext
 
         fdst = open(fname, "wb")
         shutil.copyfileobj(form["file"].file, fdst)
@@ -120,6 +124,9 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(result))
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
+    if not os.path.exists(TMP_DIR):
+        os.makedirs(TMP_DIR)
+
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print 'Starting httpd...'
