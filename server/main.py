@@ -6,6 +6,8 @@ import cgi
 import random
 import string
 import json
+import openface
+import cv2
 
 BASE62_CHARSET=string.ascii_lowercase + string.digits + string.ascii_uppercase
 
@@ -86,6 +88,28 @@ class S(BaseHTTPRequestHandler):
         fdst = open(fname, "wb")
         shutil.copyfileobj(form["file"].file, fdst)
         fdst.close()
+
+        ########### openface
+        bgrImg = cv2.imread(fname)
+        if bgrImg is None:
+            raise Exception("Unable to load image: {}".format(fname))
+        rgbImg = cv2.cvtColor(bgrImg, cv2.COLOR_BGR2RGB)
+
+        print("  + Original size: {}".format(rgbImg.shape))
+
+        start = time.time()
+        bb = align.getLargestFaceBoundingBox(rgbImg)
+        if bb is None:
+            raise Exception("Unable to find a face: {}".format(imgPath))
+        print("  + Face detection took {} seconds.".format(time.time() - start))
+
+        start = time.time()
+        alignedFace = align.align(args.imgDim, rgbImg, bb,
+                                  landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
+        if alignedFace is None:
+            raise Exception("Unable to align image: {}".format(imgPath))
+        print("  + Face alignment took {} seconds.".format(time.time() - start))
+        ############
 
         result = {
             "data": { "url": "/f/" + fname },
