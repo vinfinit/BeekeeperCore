@@ -1,5 +1,8 @@
 import os
 import time
+import cv2
+import argparse
+
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import mimetypes as memetypes
 import shutil
@@ -9,11 +12,22 @@ import string
 import json
 
 import openface
-from openface import AlignDlib as align
-import cv2
 
 BASE62_CHARSET=string.ascii_lowercase + string.digits + string.ascii_uppercase
-TMP_DIR='tmp/'
+
+openFaceModelDir = os.path.join('/root/openface', 'models')
+dlibModelDir = os.path.join(openFaceModelDir, 'dlib')
+
+fileDir = os.path.dirname(os.path.realpath(__file__))
+tmpDir = os.path.join(fileDir, '..', 'tmp')
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--dlibFacePredictor', type=str, help="Path to dlib's face predictor.",
+                    default=os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
+
+args = parser.parse_args()
+align = openface.AlignDlib(args.dlibFacePredictor)
 
 def rand_string(n=8, charset=BASE62_CHARSET):
     res = ""
@@ -85,9 +99,9 @@ class S(BaseHTTPRequestHandler):
 
         _, ext = os.path.splitext(form["file"].filename)
 
-        fname = TMP_DIR + rand_string() + ext
+        fname = os.path.join(tmpDir, rand_string() + ext)
         while os.path.isfile(fname):
-            fname = TMP_DIR + rand_string() + ext
+            fname = os.path.join(tmpDir, rand_string() + ext)
 
         fdst = open(fname, "wb")
         shutil.copyfileobj(form["file"].file, fdst)
@@ -124,8 +138,8 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(result))
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
-    if not os.path.exists(TMP_DIR):
-        os.makedirs(TMP_DIR)
+    if not os.path.exists(tmpDir):
+        os.makedirs(tmpDir)
 
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
