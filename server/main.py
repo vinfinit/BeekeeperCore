@@ -17,6 +17,7 @@ BASE62_CHARSET=string.ascii_lowercase + string.digits + string.ascii_uppercase
 
 openFaceModelDir = os.path.join('/root/openface', 'models')
 dlibModelDir = os.path.join(openFaceModelDir, 'dlib')
+openfaceModelDir = os.path.join(openFaceModelDir, 'openface')
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
 tmpDir = os.path.join(fileDir, '..', 'tmp')
@@ -25,6 +26,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--dlibFacePredictor', type=str, help="Path to dlib's face predictor.",
                     default=os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
+parser.add_argument('--networkModel', type=str, help="Path to Torch network model.",
+                    default=os.path.join(openfaceModelDir, 'nn4.small2.v1.t7'))
 parser.add_argument('--imgDim', type=int,
                     help="Default image dimension.", default=96)
 
@@ -131,6 +134,8 @@ class S(BaseHTTPRequestHandler):
         print("  + Face alignment took {} seconds.".format(time.time() - start))
 
         # TODO: Extract features from alignedFace
+        net = openface.TorchNeuralNet(args.networkModel, args.imgDim)
+        
         # TODO: Apply sklearn model
 
         ############
