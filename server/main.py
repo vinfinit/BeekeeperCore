@@ -10,6 +10,7 @@ import cgi
 import random
 import string
 import json
+import numpy
 
 from sklearn.externals import joblib
 import pandas
@@ -143,7 +144,7 @@ class S(BaseHTTPRequestHandler):
         # TODO: Extract features from alignedFace
         net = openface.TorchNeuralNet(args.networkModel, args.imgDim)
         rep1 = net.forward(alignedFace)
-
+        numpy.savetxt("face.csv", rep1, delimiter=",")
         print(rep1[0])
         # df = pandas.DataFrame(data)   data - vector of features
 
