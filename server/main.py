@@ -11,6 +11,8 @@ import random
 import string
 import json
 
+from sklearn.externals import joblib
+import pandas
 import openface
 
 BASE62_CHARSET=string.ascii_lowercase + string.digits + string.ascii_uppercase
@@ -18,6 +20,8 @@ BASE62_CHARSET=string.ascii_lowercase + string.digits + string.ascii_uppercase
 openFaceModelDir = os.path.join('/root/openface', 'models')
 dlibModelDir = os.path.join(openFaceModelDir, 'dlib')
 openfaceModelDir = os.path.join(openFaceModelDir, 'openface')
+
+beekeeperModelDir = os.path.join('/app/beekeeper-core', 'models')
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
 tmpDir = os.path.join(fileDir, '..', 'tmp')
@@ -30,6 +34,9 @@ parser.add_argument('--networkModel', type=str, help="Path to Torch network mode
                     default=os.path.join(openfaceModelDir, 'nn4.small2.v1.t7'))
 parser.add_argument('--imgDim', type=int,
                     help="Default image dimension.", default=96)
+
+parser.add_argument('--beekeeperModel', type=str, help="Path to Beekeeper network model.",
+                    default=os.path.join(beekeeperModelDir, 'random_forest.pkl'))
 
 args = parser.parse_args()
 align = openface.AlignDlib(args.dlibFacePredictor)
@@ -135,9 +142,12 @@ class S(BaseHTTPRequestHandler):
 
         # TODO: Extract features from alignedFace
         net = openface.TorchNeuralNet(args.networkModel, args.imgDim)
-        
-        # TODO: Apply sklearn model
+        # df = pandas.DataFrame(data)   data - vector of features
 
+        # TODO: Apply sklearn model (Uncomment when df will be calculated)
+        # model = joblib.load(args.beekeeperModel)
+        # y_ = model.predict(df)
+        # print("model.predict(df) {}".format(y_))
         ############
 
         result = {
