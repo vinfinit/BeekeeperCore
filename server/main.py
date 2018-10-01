@@ -42,6 +42,9 @@ parser.add_argument('--beekeeperModel', type=str, help="Path to Beekeeper networ
 args = parser.parse_args()
 align = openface.AlignDlib(args.dlibFacePredictor)
 
+print("Using beekeeperModel {}".format(args.beekeeperModel))
+beekeeperModel = joblib.load(args.beekeeperModel)
+
 def rand_string(n=8, charset=BASE62_CHARSET):
     res = ""
     for i in range(n):
@@ -141,21 +144,16 @@ class S(BaseHTTPRequestHandler):
             raise Exception("Unable to align image: {}".format(imgPath))
         print("  + Face alignment took {} seconds.".format(time.time() - start))
 
-        # TODO: Extract features from alignedFace
+        start = time.time()
         net = openface.TorchNeuralNet(args.networkModel, args.imgDim)
-        rep1 = net.forward(alignedFace)
-        numpy.savetxt("face.csv", rep1, delimiter=",")
-        print(rep1[0])
-        # df = pandas.DataFrame(data)   data - vector of features
+        features = net.forward(alignedFace)
 
-        # TODO: Apply sklearn model (Uncomment when df will be calculated)
-        # model = joblib.load(args.beekeeperModel)
-        # y_ = model.predict(df)
-        # print("model.predict(df) {}".format(y_))
-        ############
+        y_ = beekeeperModel.predict(features.reshape(1, -1))[0]
+        print("  + Beekeeper prediction took {} seconds.".format(time.time() - start))
+        print("  + Beekeeper level is {}".format(y_))
 
         result = {
-            "data": { "url": "/f/" + fname },
+            "data": { "level": y_ },
             "success": True,
             "status": 200,
         }
